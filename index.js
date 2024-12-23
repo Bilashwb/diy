@@ -1,10 +1,14 @@
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
-const axios = require("axios");
+const fetch = require("node-fetch"); // Importing fetch for Node.js
+const cors = require("cors"); // Importing cors middleware
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Enable CORS for all origins (you can customize this)
+app.use(cors());
 
 // Middleware to parse incoming JSON requests
 app.use(bodyParser.json());
@@ -46,18 +50,16 @@ app.post("/create-draft-order", async (req, res) => {
     };
 
     try {
-        const response = await axios.post(
-            endpoint,
-            { query, variables },
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Shopify-Access-Token": accessToken,
-                },
-            }
-        );
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Shopify-Access-Token": accessToken,
+            },
+            body: JSON.stringify({ query, variables }),
+        });
 
-        const data = response.data;
+        const data = await response.json();
 
         if (data.errors) {
             return res.status(500).json({ error: data.errors });
